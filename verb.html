@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>动词变换练习</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #fafafa;
+  --text: #222;
+  --text-soft: #666;
+  --accent: #555;
+  --good: #2d9c52;
+  --bad: #d64545;
+  --border: #ddd;
+  --dot: #ccc;
+}
+
+body {
+  font-family: -apple-system, 'Noto Sans CJK SC', 'Hiragino Sans GB', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+main {
+  width: 460px;
+  max-width: 95vw;
+  padding: 40px 28px;
+}
+
+/* === 开始画面 === */
+h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.sub { font-size: 13px; color: var(--text-soft); margin-bottom: 28px; }
+.form-tags { margin-bottom: 24px; display: flex; gap: 6px; flex-wrap: wrap; }
+.form-tags span {
+  font-size: 12px; padding: 3px 10px; border-radius: 4px;
+  border: 1px solid var(--border); color: var(--text-soft);
+}
+.start-btns { display: flex; gap: 10px; align-items: center; }
+.btn {
+  font-size: 15px; padding: 10px 36px; border: 1px solid var(--text);
+  background: var(--text); color: white; border-radius: 6px; cursor: pointer;
+  font-family: inherit;
+}
+.btn:hover { opacity: 0.85; }
+.btn-ghost {
+  background: none; color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: #f0f0f0; }
+.btn-help {
+  background: none; color: var(--text-soft);
+  border: 1px solid var(--border); font-size: 14px;
+  padding: 10px 20px; border-radius: 6px; cursor: pointer;
+  font-family: inherit;
+}
+.btn-help:hover { background: #f0f0f0; color: var(--text); }
+
+/* === 帮助弹窗 === */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px;
+}
+.modal-card {
+  background: white; border-radius: 12px; padding: 32px 28px 24px;
+  max-width: 520px; width: 100%; max-height: 85vh; overflow-y: auto;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+}
+.modal-card h2 { font-size: 18px; margin-bottom: 20px; }
+.modal-card h3 {
+  font-size: 14px; font-weight: 600; margin: 18px 0 8px;
+  padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.modal-card table {
+  width: 100%; font-size: 13px; border-collapse: collapse; margin-bottom: 6px;
+}
+.modal-card td {
+  padding: 3px 8px; vertical-align: top; line-height: 1.7;
+}
+.modal-card td:first-child { color: var(--text-soft); white-space: nowrap; width: 90px; }
+.modal-card td:last-child  { color: var(--text); }
+.modal-card .note {
+  font-size: 12px; color: var(--text-soft); margin-top: 2px; line-height: 1.6;
+}
+.modal-close {
+  float: right; background: none; border: none; font-size: 22px;
+  cursor: pointer; color: var(--text-soft); line-height: 1; padding: 0 4px;
+}
+.modal-close:hover { color: var(--text); }
+
+/* === 游戏画面 === */
+.status-line {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; color: var(--text-soft); margin-bottom: 8px;
+}
+.dots {
+  display: flex; gap: 6px; margin-bottom: 28px;
+}
+.dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--dot); background: white;
+  font-size: 10px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.dot.now  { border-color: var(--accent); border-width: 3px; }
+.dot.ok   { border-color: var(--good); background: #e6f4ea; color: var(--good); }
+.dot.fail { border-color: var(--bad); background: #fde8e8; color: var(--bad); }
+
+.task-big {
+  font-size: 18px; color: var(--text-soft); margin-bottom: 4px;
+  letter-spacing: 0.5px;
+}
+.task-big .arrow { margin: 0 6px; color: var(--text-soft); }
+
+.verb-huge {
+  font-size: 38px; font-weight: 600; letter-spacing: 1px; margin-bottom: 24px;
+}
+.verb-huge rt {
+  font-size: 15px; font-weight: 400; color: var(--text-soft);
+}
+
+/* 选择题 2x2 */
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.choice-btn {
+  font-size: 20px; padding: 16px 10px;
+  border: 2px solid var(--border); border-radius: 8px;
+  background: white; cursor: pointer; font-family: inherit;
+  transition: all 0.15s; text-align: center;
+}
+.choice-btn:hover:not(:disabled) { background: #f5f5f5; border-color: #bbb; }
+.choice-btn.correct { background: #e6f4ea; border-color: var(--good); color: var(--good); }
+.choice-btn.wrong   { background: #fde8e8; border-color: var(--bad); color: var(--bad); }
+.choice-btn.reveal  { border-color: var(--good); background: #f6fdf7; border-style: dashed; }
+.choice-btn:disabled { pointer-events: none; }
+
+/* 输入题 */
+.input-row {
+  display: flex; gap: 8px; margin-bottom: 14px;
+}
+.input-row input {
+  flex: 1; font-size: 18px; padding: 10px 14px;
+  border: 2px solid var(--border); border-radius: 6px; outline: none;
+  font-family: inherit; text-align: center;
+}
+.input-row input:focus { border-color: var(--accent); }
+.input-row input.shake { animation: sh 0.4s; border-color: var(--bad); }
+.input-row input.glow  { border-color: var(--good); background: #f6fdf7; }
+@keyframes sh {
+  0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)}
+}
+.input-row button {
+  font-size: 15px; padding: 10px 20px;
+  border: 2px solid var(--accent); background: var(--accent);
+  color: white; border-radius: 6px; cursor: pointer; font-family: inherit;
+}
+.input-row button:hover { opacity: 0.85; }
+
+.fb { font-size: 14px; min-height: 22px; margin-bottom: 14px; }
+.fb.ok  { color: var(--good); }
+.fb.err { color: var(--bad); }
+
+/* === 结束画面 === */
+.end-stats { margin: 20px 0; font-size: 14px; line-height: 2; }
+.end-stats span { font-weight: 600; }
+
+.hidden { display: none !important; }
+
+@media (max-width: 440px) {
+  main { padding: 24px 16px; }
+  .verb-huge { font-size: 30px; }
+  .choice-btn { font-size: 17px; padding: 13px 8px; }
+  .modal-card { padding: 24px 18px 18px; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ===== 开始画面 ===== -->
+<div id="screenStart">
+  <h1>动词变换练习</h1>
+  <p class="sub">Claude Code · MIT · 第一版</p>
+  <div class="form-tags">
+    <span>原形</span><span>ます形</span><span>て形</span><span>ない形</span><span>た形</span>
+  </div>
+  <div class="start-btns">
+    <button class="btn" onclick="startGame()">开始</button>
+    <button class="btn-help" onclick="openHelp()">帮助 ▸ 变形规则</button>
+  </div>
+</div>
+
+<!-- ===== 帮助弹窗 ===== -->
+<div id="modalHelp" class="modal-overlay hidden" onclick="closeHelp(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeHelp()">&times;</button>
+    <h2>动词变形规则</h2>
+
+    <h3>五段动词（一类 · godan）</h3>
+    <table>
+      <tr><td>判定</td><td>词尾在 う・く・ぐ・す・つ・ぬ・ぶ・む・る（非 いる/える）</td></tr>
+      <tr><td>て形</td><td>く→いて　ぐ→いで　う/つ/る→って　ぬ/ぶ/む→んで　す→して<br>※行く→行って（例外）</td></tr>
+      <tr><td>た形</td><td>同上，て→た・で→だ（いて→いた／んで→んだ …）</td></tr>
+      <tr><td>ない形</td><td>う段→あ段＋ない：<br>く→か　ぐ→が　う→わ　つ→た　る→ら<br>ぬ→な　ぶ→ば　む→ま　す→さ</td></tr>
+      <tr><td>ます形</td><td>う段→い段＋ます</td></tr>
+    </table>
+
+    <h3>一段动词（二类 · ichidan）</h3>
+    <table>
+      <tr><td>判定</td><td>词尾 る，前假名在 い段/え段（食べる・見る・起きる…）</td></tr>
+      <tr><td>て形/た形</td><td>去る＋て／た</td></tr>
+      <tr><td>ない形</td><td>去る＋ない</td></tr>
+      <tr><td>ます形</td><td>去る＋ます</td></tr>
+    </table>
+    <p class="note">⚠ 帰る・要る・切る… 虽以 いる/える 结尾，但属于五段（特殊）</p>
+
+    <h3>不规则动词（三类）</h3>
+    <table>
+      <tr><td>する</td><td>して／した／しない／します</td></tr>
+      <tr><td>来る</td><td>来て／来た／来ない／来ます</td></tr>
+      <tr><td>〜する</td><td>同 する（勉強→勉強して…）</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== 游戏画面 ===== -->
+<div id="screenGame" class="hidden">
+  <div class="status-line">
+    <span id="roundLabel">第 1/10 题</span>
+    <span id="scoreLabel">0 分</span>
+  </div>
+  <div class="dots" id="dots"></div>
+
+  <div class="task-big" id="taskBig"></div>
+  <div class="verb-huge" id="verbHuge"></div>
+
+  <div class="choices" id="choices"></div>
+
+  <div class="input-row hidden" id="inputArea">
+    <input type="text" id="answerInput" placeholder="输入答案"
+           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button id="btnSubmit" onclick="checkAnswer()">检查</button>
+  </div>
+
+  <div class="fb" id="feedback"></div>
+
+  <button class="btn btn-ghost hidden" id="btnNext" onclick="nextQuestion()">下一题</button>
+</div>
+
+<!-- ===== 结束画面 ===== -->
+<div id="screenFinish" class="hidden">
+  <h1>完成</h1>
+  <div class="end-stats">
+    得分 <span id="resultScore">0</span><br>
+    一次过关 <span id="resultFirstTry">0</span> 题<br>
+    错题复习 <span id="resultRetry">0</span> 轮
+  </div>
+  <button class="btn" onclick="startGame()" style="margin-top:16px;">再来一局</button>
+</div>
+
+</main>
+
+<script>
+// ===== verbRuby: kanji + per-form kana → ruby HTML =====
+function verbRuby(v, form) {
+  const text = v[form];
+  const k = v.kanji;
+  if (!k) return text;
+  const y = v.kana[form];
+  const i = text.indexOf(k);
+  if (i === -1) return text;
+  return text.slice(0, i) + `<ruby>${k}<rt>${y}</rt></ruby>` + text.slice(i + k.length);
+}
+
+// ===== 动词数据库 =====
+// cls: 'godan'|'ichidan'|'irregular'
+// end: 辞书形末尾假名（godan用）或 'する'/'来る'（不规则用）
+const VERB_DB = [
+  // ── 五段 ──
+  { cls:'godan',end:'く',kanji:'書',kana:{原形:'か',ます形:'か',て形:'か',ない形:'か',た形:'か'},
+    原形:'書く',ます形:'書きます',て形:'書いて',ない形:'書かない',た形:'書いた' },
+  { cls:'godan',end:'む',kanji:'読',kana:{原形:'よ',ます形:'よ',て形:'よ',ない形:'よ',た形:'よ'},
+    原形:'読む',ます形:'読みます',て形:'読んで',ない形:'読まない',た形:'読んだ' },
+  { cls:'godan',end:'う',kanji:'買',kana:{原形:'か',ます形:'か',て形:'か',ない形:'か',た形:'か'},
+    原形:'買う',ます形:'買います',て形:'買って',ない形:'買わない',た形:'買った' },
+  { cls:'godan',end:'す',kanji:'話',kana:{原形:'はな',ます形:'はな',て形:'はな',ない形:'はな',た形:'はな'},
+    原形:'話す',ます形:'話します',て形:'話して',ない形:'話さない',た形:'話した' },
+  { cls:'godan',end:'つ',kanji:'待',kana:{原形:'ま',ます形:'ま',て形:'ま',ない形:'ま',た形:'ま'},
+    原形:'待つ',ます形:'待ちます',て形:'待って',ない形:'待たない',た形:'待った' },
+  { cls:'godan',end:'る',kanji:'作',kana:{原形:'つく',ます形:'つく',て形:'つく',ない形:'つく',た形:'つく'},
+    原形:'作る',ます形:'作ります',て形:'作って',ない形:'作らない',た形:'作った' },
+  { cls:'godan',end:'ぐ',kanji:'泳',kana:{原形:'およ',ます形:'およ',て形:'およ',ない形:'およ',た形:'およ'},
+    原形:'泳ぐ',ます形:'泳ぎます',て形:'泳いで',ない形:'泳がない',た形:'泳いだ' },
+  { cls:'godan',end:'ぬ',kanji:'死',kana:{原形:'し',ます形:'し',て形:'し',ない形:'し',た形:'し'},
+    原形:'死ぬ',ます形:'死にます',て形:'死んで',ない形:'死なない',た形:'死んだ' },
+  { cls:'godan',end:'ぶ',kanji:'飛',kana:{原形:'と',ます形:'と',て形:'と',ない形:'と',た形:'と'},
+    原形:'飛ぶ',ます形:'飛びます',て形:'飛んで',ない形:'飛ばない',た形:'飛んだ' },
+  { cls:'godan',end:'ぶ',kanji:'遊',kana:{原形:'あそ',ます形:'あそ',て形:'あそ',ない形:'あそ',た形:'あそ'},
+    原形:'遊ぶ',ます形:'遊びます',て形:'遊んで',ない形:'遊ばない',た形:'遊んだ' },
+  { cls:'godan',end:'く',kanji:'聞',kana:{原形:'き',ます形:'き',て形:'き',ない形:'き',た形:'き'},
+    原形:'聞く',ます形:'聞きます',て形:'聞いて',ない形:'聞かない',た形:'聞いた' },
+  { cls:'godan',end:'る',kanji:'帰',kana:{原形:'かえ',ます形:'かえ',て形:'かえ',ない形:'かえ',た形:'かえ'},
+    原形:'帰る',ます形:'帰ります',て形:'帰って',ない形:'帰らない',た形:'帰った' },
+  { cls:'godan',end:'る',kanji:'分',kana:{原形:'わ',ます形:'わ',て形:'わ',ない形:'わ',た形:'わ'},
+    原形:'分かる',ます形:'分かります',て形:'分かって',ない形:'分からない',た形:'分かった' },
+  { cls:'godan',end:'る',kanji:'送',kana:{原形:'おく',ます形:'おく',て形:'おく',ない形:'おく',た形:'おく'},
+    原形:'送る',ます形:'送ります',て形:'送って',ない形:'送らない',た形:'送った' },
+  { cls:'godan',end:'う',kanji:'歌',kana:{原形:'うた',ます形:'うた',て形:'うた',ない形:'うた',た形:'うた'},
+    原形:'歌う',ます形:'歌います',て形:'歌って',ない形:'歌わない',た形:'歌った' },
+  { cls:'godan',end:'く',kanji:'歩',kana:{原形:'ある',ます形:'ある',て形:'ある',ない形:'ある',た形:'ある'},
+    原形:'歩く',ます形:'歩きます',て形:'歩いて',ない形:'歩かない',た形:'歩いた' },
+  { cls:'godan',end:'す',kanji:'消',kana:{原形:'け',ます形:'け',て形:'け',ない形:'け',た形:'け'},
+    原形:'消す',ます形:'消します',て形:'消して',ない形:'消さない',た形:'消した' },
+  // ── 一段 ──
+  { cls:'ichidan',kanji:'食',kana:{原形:'た',ます形:'た',て形:'た',ない形:'た',た形:'た'},
+    原形:'食べる',ます形:'食べます',て形:'食べて',ない形:'食べない',た形:'食べた' },
+  { cls:'ichidan',kanji:'見',kana:{原形:'み',ます形:'み',て形:'み',ない形:'み',た形:'み'},
+    原形:'見る',ます形:'見ます',て形:'見て',ない形:'見ない',た形:'見た' },
+  { cls:'ichidan',kanji:'寝',kana:{原形:'ね',ます形:'ね',て形:'ね',ない形:'ね',た形:'ね'},
+    原形:'寝る',ます形:'寝ます',て形:'寝て',ない形:'寝ない',た形:'寝た' },
+  { cls:'ichidan',kanji:'起',kana:{原形:'お',ます形:'お',て形:'お',ない形:'お',た形:'お'},
+    原形:'起きる',ます形:'起きます',て形:'起きて',ない形:'起きない',た形:'起きた' },
+  { cls:'ichidan',kanji:'教',kana:{原形:'おし',ます形:'おし',て形:'おし',ない形:'おし',た形:'おし'},
+    原形:'教える',ます形:'教えます',て形:'教えて',ない形:'教えない',た形:'教えた' },
+  { cls:'ichidan',kanji:'開',kana:{原形:'あ',ます形:'あ',て形:'あ',ない形:'あ',た形:'あ'},
+    原形:'開ける',ます形:'開けます',て形:'開けて',ない形:'開けない',た形:'開けた' },
+  { cls:'ichidan',kanji:'閉',kana:{原形:'し',ます形:'し',て形:'し',ない形:'し',た形:'し'},
+    原形:'閉める',ます形:'閉めます',て形:'閉めて',ない形:'閉めない',た形:'閉めた' },
+  { cls:'ichidan',kanji:'着',kana:{原形:'き',ます形:'き',て形:'き',ない形:'き',た形:'き'},
+    原形:'着る',ます形:'着ます',て形:'着て',ない形:'着ない',た形:'着た' },
+  { cls:'ichidan',kanji:'出',kana:{原形:'で',ます形:'で',て形:'で',ない形:'で',た形:'で'},
+    原形:'出る',ます形:'出ます',て形:'出て',ない形:'出ない',た形:'出た' },
+  { cls:'ichidan',kanji:'並',kana:{原形:'なら',ます形:'なら',て形:'なら',ない形:'なら',た形:'なら'},
+    原形:'並べる',ます形:'並べます',て形:'並べて',ない形:'並べない',た形:'並べた' },
+  { cls:'ichidan',kanji:'考',kana:{原形:'かんが',ます形:'かんが',て形:'かんが',ない形:'かんが',た形:'かんが'},
+    原形:'考える',ます形:'考えます',て形:'考えて',ない形:'考えない',た形:'考えた' },
+  // ── 不规则 ──
+  { cls:'irregular',end:'する',kanji:'',kana:{},
+    原形:'する',ます形:'します',て形:'して',ない形:'しない',た形:'した' },
+  { cls:'irregular',end:'来る',kanji:'来',kana:{原形:'く',ます形:'き',て形:'き',ない形:'こ',た形:'き'},
+    原形:'来る',ます形:'来ます',て形:'来て',ない形:'来ない',た形:'来た' },
+  { cls:'irregular',end:'する',kanji:'勉強',kana:{原形:'べんきょう',ます形:'べんきょう',て形:'べんきょう',ない形:'べんきょう',た形:'べんきょう'},
+    原形:'勉強する',ます形:'勉強します',て形:'勉強して',ない形:'勉強しない',た形:'勉強した' },
+  { cls:'irregular',end:'する',kanji:'散歩',kana:{原形:'さんぽ',ます形:'さんぽ',て形:'さんぽ',ない形:'さんぽ',た形:'さんぽ'},
+    原形:'散歩する',ます形:'散歩します',て形:'散歩して',ない形:'散歩しない',た形:'散歩した' },
+  { cls:'irregular',end:'する',kanji:'電話',kana:{原形:'でんわ',ます形:'でんわ',て形:'でんわ',ない形:'でんわ',た形:'でんわ'},
+    原形:'電話する',ます形:'電話します',て形:'電話して',ない形:'電話しない',た形:'電話した' },
+];
+
+const FORMS = ['原形', 'ます形', 'て形', 'ない形', 'た形'];
+const ROUND = 10;
+const N_CHOICE = 7;
+
+// ===== 工具 =====
+const shuf = a => { const x = [...a]; for (let i=x.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]; } return x; };
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const uniq = a => [...new Set(a)];
+
+// Godan 行映射：末尾假名 → 行
+const GODAN_ROWS = { 'く':'k','ぐ':'g','う':'w','つ':'t','る':'r','ぬ':'n','ぶ':'b','む':'m','す':'s' };
+
+// 各目标形态对应的全 godan 行词尾表 [{row, end}]
+const GODAN_ENDINGS = {
+  'て形': [
+    {row:'k',end:'いて'},{row:'g',end:'いで'},{row:'w',end:'って'},
+    {row:'t',end:'って'},{row:'r',end:'って'},{row:'n',end:'んで'},
+    {row:'b',end:'んで'},{row:'m',end:'んで'},{row:'s',end:'して'},
+  ],
+  'た形': [
+    {row:'k',end:'いた'},{row:'g',end:'いだ'},{row:'w',end:'った'},
+    {row:'t',end:'った'},{row:'r',end:'った'},{row:'n',end:'んだ'},
+    {row:'b',end:'んだ'},{row:'m',end:'んだ'},{row:'s',end:'した'},
+  ],
+  'ない形': [
+    {row:'k',end:'かない'},{row:'g',end:'がない'},{row:'w',end:'わない'},
+    {row:'t',end:'たない'},{row:'r',end:'らない'},{row:'n',end:'なない'},
+    {row:'b',end:'ばない'},{row:'m',end:'まない'},{row:'s',end:'さない'},
+  ],
+  'ます形': [
+    {row:'k',end:'きます'},{row:'g',end:'ぎます'},{row:'w',end:'います'},
+    {row:'t',end:'ちます'},{row:'r',end:'ります'},{row:'n',end:'にます'},
+    {row:'b',end:'びます'},{row:'m',end:'みます'},{row:'s',end:'します'},
+  ],
+};
+
+// 一段动词各形态的"一段式"词尾（去る直接加）
+const ICHIDAN_ENDS = { 'て形':'て', 'た形':'た', 'ない形':'ない', 'ます形':'ます' };
+
+// ===== 获取动词的展示词干 =====
+// 返回 { display, kana } — display 是显示用（含汉字），kana 是读音
+function getStemParts(v) {
+  const text = v.原形;
+  const k = v.kanji;
+
+  if (v.cls === 'irregular') {
+    if (text === 'する') return { display:'', kana:'' };
+    if (text === '来る') return { display:'来', kana:'く' };
+    return { display:k, kana: v.kana.原形 || '' };
+  }
+
+  // godan 或 ichidan：末尾假名即词尾
+  const ending = (v.cls === 'ichidan') ? 'る' : text.slice(-1);
+  const kIdx  = text.indexOf(k);
+  const after = text.slice(kIdx + k.length);
+  // 词尾前的送假名
+  const okuri = after.slice(0, after.length - ending.length);
+
+  return {
+    display: k + okuri,
+    kana: (v.kana.原形 || '') + okuri,
+  };
+}
+
+// ===== 获取错误选项 =====
+function getWrongOptions(verb, targetForm, count) {
+  const correct = verb[targetForm];
+  const stem = getStemParts(verb);
+
+  // ── 目标为原形 → 跨动词干扰 ──
+  if (targetForm === '原形') {
+    return shuf(
+      uniq(VERB_DB.filter(v => v !== verb).map(v => v.原形))
+    ).slice(0, count);
+  }
+
+  const pool = [];
+
+  // ── 不规则：手工构造易混选项 ──
+  if (verb.cls === 'irregular') {
+    const base = stem.display; // する→'' / 来る→'来' / 勉強→'勉強'
+    // 根据目标形态选干扰模式
+    const irrMap = {
+      'て形': [verb['た形'], base+'すって', base+'すいて', base+'しって'],
+      'た形': [verb['て形'], base+'すった', base+'すいた', base+'しった'],
+      'ない形': [verb['ます形'], base+'すらない', base+'すさない', base+'せない'],
+      'ます形': [verb['ない形'], base+'すります', base+'すちます', base+'しります'],
+    };
+    pool.push(...(irrMap[targetForm] || []));
+    // 不同形态干扰
+    const other = pick(FORMS.filter(f => f !== targetForm));
+    pool.push(verb[other]);
+    return uniq(pool).filter(o => o !== correct).slice(0, count);
+  }
+
+  // ── 五段：用错误行的词尾 ──
+  if (verb.cls === 'godan') {
+    const row = GODAN_ROWS[verb.end];
+    const table = GODAN_ENDINGS[targetForm];
+    if (table) {
+      // 收集所有与正确行不同的唯一词尾
+      const wrongEnds = uniq(
+        table.filter(e => e.row !== row).map(e => e.end)
+      );
+      for (const e of shuf(wrongEnds)) {
+        pool.push(stem.display + e);
+        if (pool.length >= 2) break;
+      }
+    }
+    // る-五段特殊：额外加"一段式错误"（去る直接加，极容易混淆）
+    if (verb.end === 'る' && ICHIDAN_ENDS[targetForm]) {
+      pool.push(stem.display + ICHIDAN_ENDS[targetForm]);
+    }
+  }
+
+  // ── 一段：所有五段词尾都是错的 ──
+  if (verb.cls === 'ichidan') {
+    const table = GODAN_ENDINGS[targetForm];
+    if (table) {
+      const allEnds = uniq(table.map(e => e.end));
+      for (const e of shuf(allEnds)) {
+        pool.push(stem.display + e);
+        if (pool.length >= 2) break;
+      }
+    }
+  }
+
+  // ── 通用干扰：同一动词的不同形态 ──
+  const otherForms = FORMS.filter(f => f !== targetForm);
+  // 优先选相近形态（た形↔て形，ない形↔ます形）
+  const nearby = { 'て形':'た形', 'た形':'て形', 'ない形':'ます形', 'ます形':'ない形' };
+  if (nearby[targetForm] && otherForms.includes(nearby[targetForm])) {
+    pool.push(verb[nearby[targetForm]]);
+  } else {
+    pool.push(verb[pick(otherForms)]);
+  }
+
+  // ── 去重，排除正确答案 ──
+  let result = uniq(pool).filter(o => o !== correct);
+
+  // 不够 → 跨动词补
+  for (const v of shuf(VERB_DB)) {
+    if (result.length >= count) break;
+    if (v === verb) continue;
+    const alt = v[targetForm];
+    if (alt !== correct && !result.includes(alt)) result.push(alt);
+  }
+
+  return shuf(result).slice(0, count);
+}
+
+// ===== 生成题目集 =====
+function genQ() {
+  const v = pick(VERB_DB);
+  const src = pick(FORMS);
+  const dst = pick(FORMS.filter(f => f !== src));
+  return { verb: v, from: src, to: dst };
+}
+
+function genSet(total, nChoice) {
+  const qs = [];
+  const seen = new Set();
+  for (let t = 0; qs.length < total && t < 300; t++) {
+    const q = genQ();
+    const k = `${q.verb.原形}|${q.from}|${q.to}`;
+    if (!seen.has(k)) { seen.add(k); qs.push(q); }
+  }
+  while (qs.length < total) qs.push(genQ());
+
+  // 前 nChoice 道是选择题，剩下是输入题
+  qs.forEach((q, i) => { q.type = i < nChoice ? 'choice' : 'input'; });
+  return shuf(qs);
+}
+
+// ===== 状态 =====
+let st = {};
+function newState() {
+  return {
+    questions: [],
+    dotStatus: [],
+    idx: 0,
+    roundLen: 0,
+    score: 0,
+    combo: 0,
+    firstOk: 0,
+    retries: 0,
+    review: false,
+    wrongs: [],
+    answered: false,
+  };
+}
+
+// ===== DOM 引用 =====
+const E = id => document.getElementById(id);
+const elStart    = E('screenStart');
+const elGame     = E('screenGame');
+const elFinish   = E('screenFinish');
+const elTaskBig  = E('taskBig');
+const elVerbHuge = E('verbHuge');
+const elChoices  = E('choices');
+const elInputArea= E('inputArea');
+const elInput    = E('answerInput');
+const elSubmit   = E('btnSubmit');
+const elNext     = E('btnNext');
+const elFB       = E('feedback');
+const elDots     = E('dots');
+const elRnd      = E('roundLabel');
+const elScore    = E('scoreLabel');
+const elModal    = E('modalHelp');
+
+// ===== 进度点 =====
+function renderDots() {
+  elDots.innerHTML = '';
+  for (let i = 0; i < st.roundLen; i++) {
+    const d = document.createElement('span');
+    d.className = 'dot';
+    if (st.dotStatus[i] === 'ok')   { d.classList.add('ok'); d.textContent = '✓'; }
+    if (st.dotStatus[i] === 'fail') { d.classList.add('fail'); d.textContent = '✗'; }
+    if (i === st.idx)               { d.classList.add('now'); }
+    elDots.appendChild(d);
+  }
+}
+
+// ===== 渲染题目 =====
+function renderQ() {
+  if (st.idx >= st.roundLen) { finishRound(); return; }
+
+  st.answered = false;
+  const q = st.questions[st.idx];
+
+  // 题目行：原形 → て形
+  elTaskBig.innerHTML = `${q.from} <span class="arrow">→</span> ${q.to}`;
+
+  // 变换前动词（最大，带注音）
+  elVerbHuge.innerHTML = verbRuby(q.verb, q.from);
+
+  // 状态
+  elRnd.textContent = st.review
+    ? `错题复习 ${st.idx+1}/${st.roundLen}`
+    : `${st.idx+1}/${st.roundLen}`;
+  elScore.textContent = `${st.score} 分`;
+
+  renderDots();
+  elFB.textContent = '';
+  elFB.className = 'fb';
+  elNext.classList.add('hidden');
+
+  if (q.type === 'choice') {
+    // ── 选择题 ──
+    elChoices.classList.remove('hidden');
+    elInputArea.classList.add('hidden');
+
+    const correct = q.verb[q.to];
+    const wrongs = getWrongOptions(q.verb, q.to, 3);
+    q.choices = shuf([correct, ...wrongs]);
+
+    elChoices.innerHTML = '';
+    q.choices.forEach((text, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = text;
+      btn.onclick = () => selectChoice(i);
+      elChoices.appendChild(btn);
+    });
+  } else {
+    // ── 输入题 ──
+    elChoices.classList.add('hidden');
+    elInputArea.classList.remove('hidden');
+    elInput.value = '';
+    elInput.className = '';
+    elSubmit.classList.remove('hidden');
+    elInput.focus();
+  }
+}
+
+// ===== 选择题：点击选项 =====
+function selectChoice(idx) {
+  if (st.answered) return;
+  st.answered = true;
+
+  const q = st.questions[st.idx];
+  const correct = q.verb[q.to];
+  const chosen = q.choices[idx];
+  const btns = elChoices.querySelectorAll('.choice-btn');
+
+  btns.forEach(b => b.disabled = true);
+
+  if (chosen === correct) {
+    st.score += 10 + st.combo * 2;
+    st.combo++;
+    if (!st.review) st.firstOk++;
+    st.dotStatus[st.idx] = 'ok';
+    btns[idx].classList.add('correct');
+    elFB.textContent = '正确 ✓';
+    elFB.className = 'fb ok';
+  } else {
+    st.combo = 0;
+    st.dotStatus[st.idx] = 'fail';
+    st.wrongs.push(q);
+    btns[idx].classList.add('wrong');
+
+    // 高亮正确答案
+    const correctIdx = q.choices.indexOf(correct);
+    if (correctIdx >= 0 && correctIdx !== idx) {
+      btns[correctIdx].classList.add('reveal');
+    }
+
+    elFB.innerHTML = `错误，答案是 ${verbRuby(q.verb, q.to)}`;
+    elFB.className = 'fb err';
+  }
+
+  elScore.textContent = `${st.score} 分`;
+  renderDots();
+  elNext.classList.remove('hidden');
+  elNext.focus();
+}
+
+// ===== 输入题：检查答案 =====
+function checkAnswer() {
+  if (st.answered) return;
+
+  const q = st.questions[st.idx];
+  const ans = elInput.value.trim();
+  const correct = q.verb[q.to];
+
+  if (!ans) {
+    elInput.classList.add('shake');
+    setTimeout(() => elInput.classList.remove('shake'), 400);
+    return;
+  }
+
+  st.answered = true;
+
+  if (ans === correct) {
+    st.score += 10 + st.combo * 2;
+    st.combo++;
+    if (!st.review) st.firstOk++;
+    st.dotStatus[st.idx] = 'ok';
+    elFB.textContent = '正确 ✓';
+    elFB.className = 'fb ok';
+    elInput.classList.add('glow');
+  } else {
+    st.combo = 0;
+    st.dotStatus[st.idx] = 'fail';
+    st.wrongs.push(q);
+    elFB.innerHTML = `错误，答案是 ${verbRuby(q.verb, q.to)}`;
+    elFB.className = 'fb err';
+    elInput.classList.add('shake');
+    setTimeout(() => elInput.classList.remove('shake'), 400);
+  }
+
+  elScore.textContent = `${st.score} 分`;
+  renderDots();
+  elSubmit.classList.add('hidden');
+  elNext.classList.remove('hidden');
+  elNext.focus();
+}
+
+// ===== 下一题 =====
+function nextQuestion() {
+  st.idx++;
+  if (st.idx >= st.roundLen) { finishRound(); return; }
+  renderQ();
+}
+
+// ===== 轮次结束 → 错题复习 =====
+function finishRound() {
+  if (st.wrongs.length === 0) { endGame(); return; }
+
+  st.review = true;
+  st.retries++;
+  st.questions = shuf([...st.wrongs]);
+  st.wrongs = [];
+  st.idx = 0;
+  st.roundLen = st.questions.length;
+  st.dotStatus = new Array(st.roundLen).fill(null);
+  st.combo = 0;
+
+  renderQ();
+}
+
+// ===== 结束 =====
+function endGame() {
+  elGame.classList.add('hidden');
+  elFinish.classList.remove('hidden');
+  E('resultScore').textContent = st.score;
+  E('resultFirstTry').textContent = st.firstOk;
+  E('resultRetry').textContent = st.retries;
+}
+
+// ===== 开始新游戏 =====
+function startGame() {
+  st = newState();
+  st.questions = genSet(ROUND, N_CHOICE);
+  st.roundLen = st.questions.length;
+  st.dotStatus = new Array(st.roundLen).fill(null);
+  st.idx = 0;
+  st.firstOk = 0;
+  st.retries = 0;
+  st.review = false;
+  st.wrongs = [];
+
+  elScore.textContent = '0 分';
+  elStart.classList.add('hidden');
+  elFinish.classList.add('hidden');
+  elGame.classList.remove('hidden');
+
+  renderQ();
+}
+
+// ===== 帮助弹窗 =====
+function openHelp() {
+  elModal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeHelp(e) {
+  if (e && e.target !== elModal) return; // 只响应点击遮罩
+  elModal.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// ===== 键盘快捷键 =====
+document.addEventListener('keydown', e => {
+  // 帮助弹窗：Esc 关闭
+  if (!elModal.classList.contains('hidden')) {
+    if (e.key === 'Escape') { e.preventDefault(); closeHelp(); }
+    return;
+  }
+  if (elGame.classList.contains('hidden')) return;
+  if (e.isComposing) return;
+
+  const q = st.questions && st.questions[st.idx];
+
+  if (e.key === 'Enter' && !st.answered) {
+    // 输入题：回车提交
+    if (q && q.type === 'input' && !elSubmit.classList.contains('hidden')) {
+      e.preventDefault();
+      checkAnswer();
+    }
+  } else if (e.key === 'Enter' && st.answered) {
+    // ★ 答完后回车 → 下一题（else if 防双击跳过反馈）
+    if (!elNext.classList.contains('hidden')) {
+      e.preventDefault();
+      nextQuestion();
+    }
+  }
+
+  // 选择题：数字键 1-4 快捷选择
+  if (q && q.type === 'choice' && !st.answered && ['1','2','3','4'].includes(e.key)) {
+    e.preventDefault();
+    selectChoice(parseInt(e.key) - 1);
+  }
+});
+
+// ===== 初始化 =====
+elStart.classList.remove('hidden');
+elGame.classList.add('hidden');
+elFinish.classList.add('hidden');
+elModal.classList.add('hidden');
+</script>
+</body>
+</html>
